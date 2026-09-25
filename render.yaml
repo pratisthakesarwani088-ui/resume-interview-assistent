@@ -116,7 +116,7 @@ services:
 
   # --- Frontend: native Render Static Site, not Docker ----------------------
   - type: web
-    runtime:static
+    runtime: static
     name: interview-assistant-frontend
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: ./frontend/dist
