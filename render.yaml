@@ -115,7 +115,8 @@ services:
         sync: false # a long-lived JWT or service token n8n uses to call the Django API
 
   # --- Frontend: native Render Static Site, not Docker ----------------------
-  - type: static
+  - type: web
+    runtime:static
     name: interview-assistant-frontend
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: ./frontend/dist
