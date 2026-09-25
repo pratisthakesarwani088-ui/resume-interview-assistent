@@ -1,0 +1,74 @@
+{
+  "name": "Resume Analysis Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "resume-analysis-pipeline",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "resume-analysis-pipeline",
+      "notes": "POST { \"access_token\": \"<user's JWT access token>\" }. The workflow acts as that user — Django's own auth/ownership checks still apply, so this can never touch another user's resume."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DJANGO_API_BASE_URL }}/api/analysis/analyze/",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.body.access_token }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "call-django-analyze",
+      "name": "Trigger Resume Analysis (Django)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300],
+      "notes": "Calls Django's existing POST /api/analysis/analyze/ — the exact same endpoint the React frontend calls. Django internally calls the FastAPI AI service for the Gemini part. This node duplicates none of that logic; it only sequences an HTTP call."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [{ "node": "Trigger Resume Analysis (Django)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Trigger Resume Analysis (Django)": {
+      "main": [
+        [{ "node": "Respond to Webhook", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "id": "resume-analysis-pipeline",
+  "meta": {
+    "description": "Optional orchestration entry point for the existing resume analysis pipeline (Module 3). Resume upload, PDF extraction (Module 2), and RAG chunking/embedding/indexing (Module 4) already happen automatically inside Django the moment a resume finishes processing — this workflow does not re-implement or replace any of that. It exists so an external trigger (an admin tool, a scheduled re-analysis, a support script) can kick off analysis for a given user by calling Django's own authenticated API, the same way the React frontend does, without n8n needing to know anything about Gemini, chunking, or ChromaDB."
+  }
+}

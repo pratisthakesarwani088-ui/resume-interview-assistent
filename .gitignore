@@ -1,0 +1,27 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Node
+node_modules/
+dist/
+
+# Environment files (secrets!)
+.env
+
+# Database
+db.sqlite3
+
+# Media/uploads
+media/
+chroma_data/
+staticfiles/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
